@@ -12,8 +12,23 @@ import (
 	"github.com/pseudomuto/protokit"
 )
 
+var primitives = map[descriptor.FieldDescriptorProto_Type]string{
+	descriptor.FieldDescriptorProto_TYPE_BOOL:    "Boolean",
+	descriptor.FieldDescriptorProto_TYPE_INT32:   "Int",
+	descriptor.FieldDescriptorProto_TYPE_INT64:   "Int",
+	descriptor.FieldDescriptorProto_TYPE_BYTES:   "String",
+	descriptor.FieldDescriptorProto_TYPE_FLOAT:   "Float",
+	descriptor.FieldDescriptorProto_TYPE_STRING:  "String",
+	descriptor.FieldDescriptorProto_TYPE_DOUBLE:  "Float",
+	descriptor.FieldDescriptorProto_TYPE_FIXED32: "Float",
+	descriptor.FieldDescriptorProto_TYPE_FIXED64: "Float",
+	descriptor.FieldDescriptorProto_TYPE_SINT32:  "Int",
+	descriptor.FieldDescriptorProto_TYPE_SINT64:  "Int",
+	descriptor.FieldDescriptorProto_TYPE_UINT32:  "Int",
+	descriptor.FieldDescriptorProto_TYPE_UINT64:  "Int",
+}
+
 func main() {
-	// all the heavy lifting done for you!
 	if err := protokit.RunPlugin(&plugin{out: &bytes.Buffer{}}); err != nil {
 		log.Fatal(err)
 	}
@@ -24,19 +39,16 @@ type plugin struct {
 }
 
 func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+	params := parseParams(req.GetParameter())
 	descriptors := protokit.ParseCodeGenRequest(req)
-
 	resp := &plugin_go.CodeGeneratorResponse{}
-
-	// TODO: configurable
-	fileName := "my.graphql"
 
 	for _, d := range descriptors {
 		p.printFile(d)
 	}
 
 	resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
-		Name:    proto.String(fileName),
+		Name:    proto.String(params["file_out"]),
 		Content: proto.String(p.out.String()),
 	})
 
@@ -80,16 +92,27 @@ func (p *plugin) printService(srv *protokit.ServiceDescriptor) {
 }
 
 func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
-	for _, t := range []string{"input", "type"} {
-		name := underscore(desc.GetFullName())
+	for _, nested := range desc.GetMessages() {
+		p.printDescriptor(nested)
+	}
+
+	for _, e := range desc.GetEnums() {
+		p.printEnum(e)
+	}
+
+	for t, prefix := range map[string]string{
+		"type":  "",
+		"input": "Input_",
+	} {
+		name := fmt.Sprintf("%s%s", prefix, underscore(desc.GetFullName()))
 
 		if len(desc.GetField()) == 0 {
-			fmt.Fprintf(p.out, "%s %s\n", t, name)
+			fmt.Fprintf(p.out, "%s %s { \n  _: Boolean\n}\n\n", t, name)
 		} else {
 			fmt.Fprintf(p.out, "%s %s {\n", t, name)
 
 			for _, field := range desc.GetField() {
-				fmt.Fprintf(p.out, "  %s: %s\n", field.GetName(), typeName(field))
+				fmt.Fprintf(p.out, "  %s: %s\n", field.GetName(), typeName(field, prefix))
 			}
 
 			fmt.Fprintln(p.out, "}\n")
@@ -97,30 +120,29 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 	}
 }
 
-var primitives = map[descriptor.FieldDescriptorProto_Type]string{
-	descriptor.FieldDescriptorProto_TYPE_BOOL:    "Boolean",
-	descriptor.FieldDescriptorProto_TYPE_INT32:   "Int",
-	descriptor.FieldDescriptorProto_TYPE_INT64:   "Int",
-	descriptor.FieldDescriptorProto_TYPE_BYTES:   "String",
-	descriptor.FieldDescriptorProto_TYPE_FLOAT:   "Float",
-	descriptor.FieldDescriptorProto_TYPE_STRING:  "String",
-	descriptor.FieldDescriptorProto_TYPE_DOUBLE:  "Float",
-	descriptor.FieldDescriptorProto_TYPE_FIXED32: "Float",
-	descriptor.FieldDescriptorProto_TYPE_FIXED64: "Float",
-	descriptor.FieldDescriptorProto_TYPE_SINT32:  "Int",
-	descriptor.FieldDescriptorProto_TYPE_SINT64:  "Int",
-	descriptor.FieldDescriptorProto_TYPE_UINT32:  "Int",
-	descriptor.FieldDescriptorProto_TYPE_UINT64:  "Int",
+func parseParams(p string) map[string]string {
+	params := make(map[string]string)
+
+	for _, part := range strings.Split(p, ",") {
+		kv := strings.Split(part, "=")
+		params[kv[0]] = kv[1]
+	}
+
+	return params
 }
 
-func typeName(field *descriptor.FieldDescriptorProto) string {
+func typeName(field *descriptor.FieldDescriptorProto, prefix string) string {
 	var name string
+
+	if field.GetType() == descriptor.FieldDescriptorProto_TYPE_ENUM {
+		prefix = ""
+	}
 
 	t, isPrimitive := primitives[field.GetType()]
 	if isPrimitive {
 		name = t
 	} else {
-		name = underscore(field.GetTypeName()[1:])
+		name = fmt.Sprintf("%s%s", prefix, underscore(field.GetTypeName()[1:]))
 	}
 
 	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {

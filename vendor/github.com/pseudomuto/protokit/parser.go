@@ -37,6 +37,7 @@ const (
 // For example, given the following invocation, only booking.proto will be returned even if it imports other protos:
 //
 //     protoc --plugin=protoc-gen-test=./test -I. protos/booking.proto
+// REVERB: FORK -- Removed lines to allow for _ALL_ files to be included
 func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor {
 	var allFiles []*FileDescriptor
 
