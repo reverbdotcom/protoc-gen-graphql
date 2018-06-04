@@ -1,0 +1,10 @@
+syntax = "proto3";
+package core.apimessages;
+
+message Money {
+  sint64 amount_cents = 1;
+}
+
+message ThingWithMoney {
+  Money amount_of_money = 1;
+}
