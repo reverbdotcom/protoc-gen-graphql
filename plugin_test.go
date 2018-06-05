@@ -32,3 +32,19 @@ func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
 		t.Errorf("Expected generated schema not to contain snake_case field names, but got this instead: \n%v", content)
 	}
 }
+
+func Test_CanGenerate(t *testing.T) {
+	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	t.Log(content)
+}

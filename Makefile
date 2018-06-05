@@ -13,4 +13,4 @@ fixtures/money.pb: fixtures/money.proto
 	@cd fixtures && go generate
 
 test: fixtures/money.pb
-	@go test -race -cover ./
+	@go test -v -race -cover ./
