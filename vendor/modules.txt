@@ -1,0 +1,6 @@
+# github.com/golang/protobuf v0.0.0-20180202184318-bbd03ef6da3a
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/protoc-gen-go/descriptor
+github.com/golang/protobuf/protoc-gen-go/plugin
+# github.com/pseudomuto/protokit v0.1.0
+github.com/pseudomuto/protokit

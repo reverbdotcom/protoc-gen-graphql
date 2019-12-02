@@ -2,7 +2,7 @@ package protokit
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
 
 	"context"
 	"fmt"
@@ -105,10 +105,10 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 		longName := fmt.Sprintf("%s.%s", enum.GetLongName(), vd.GetName())
 
 		values[i] = &EnumValueDescriptor{
-			common: newCommon(file, "", longName),
+			common:                   newCommon(file, "", longName),
 			EnumValueDescriptorProto: vd,
-			Enum:     enum,
-			Comments: file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
+			Enum:                     enum,
+			Comments:                 file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
 		}
 	}
 

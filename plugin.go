@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
 )
 
@@ -34,6 +34,7 @@ type plugin struct {
 func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	params := parseParams(req.GetParameter())
 	descriptors := protokit.ParseCodeGenRequest(req)
+
 	resp := &plugin_go.CodeGeneratorResponse{}
 
 	for _, d := range descriptors {
@@ -137,7 +138,11 @@ func typeName(field *descriptor.FieldDescriptorProto, prefix string) string {
 
 	t, isPrimitive := primitives[field.GetType()]
 	if isPrimitive {
-		name = t
+		if prefix == "Input_" {
+			name = t
+		} else {
+			name = fmt.Sprintf("%s!", t)
+		}
 	} else {
 		name = fmt.Sprintf("%s%s", prefix, underscore(field.GetTypeName()[1:]))
 	}
