@@ -8,8 +8,30 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
+
+func Test_SupportNewTimestampFormat(t *testing.T) {
+	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	if !strings.Contains(content, "scalar Timestamp") {
+		t.Errorf("Expected the schema to include a scalar definition for Time, %s", content)
+	}
+
+	if !strings.Contains(content, "createdAt: Timestamp") {
+		t.Errorf("Expected the schema to reflect the ISO8601 json serialization format, %s", content)
+	}
+}
 
 func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
 	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")

@@ -7,9 +7,13 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
 )
+
+var scalars = map[string]string{
+	".google.protobuf.Timestamp": "Timestamp",
+}
 
 var primitives = map[descriptor.FieldDescriptorProto_Type]string{
 	descriptor.FieldDescriptorProto_TYPE_BOOL:    "Boolean",
@@ -89,6 +93,11 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 		p.printDescriptor(nested)
 	}
 
+	if desc.GetFullName() == "google.protobuf.Timestamp" {
+		fmt.Fprintf(p.out, "scalar Timestamp\n\n")
+		return
+	}
+
 	for _, e := range desc.GetEnums() {
 		p.printEnum(e)
 	}
@@ -128,19 +137,24 @@ func parseParams(p string) map[string]string {
 	return params
 }
 
-func typeName(field *descriptor.FieldDescriptorProto, prefix string) string {
-	var name string
+func resolveType(field *descriptor.FieldDescriptorProto, prefix string) string {
+	if t, isPrimitive := primitives[field.GetType()]; isPrimitive {
+		return t
+	}
 
+	if t, isScalar := scalars[field.GetTypeName()]; isScalar {
+		return t
+	}
+
+	return fmt.Sprintf("%s%s", prefix, underscore(field.GetTypeName()[1:]))
+}
+
+func typeName(field *descriptor.FieldDescriptorProto, prefix string) string {
 	if field.GetType() == descriptor.FieldDescriptorProto_TYPE_ENUM {
 		prefix = ""
 	}
 
-	t, isPrimitive := primitives[field.GetType()]
-	if isPrimitive {
-		name = t
-	} else {
-		name = fmt.Sprintf("%s%s", prefix, underscore(field.GetTypeName()[1:]))
-	}
+	name := resolveType(field, prefix)
 
 	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 		return fmt.Sprintf("[%s]", name)
