@@ -1,12 +1,16 @@
+.EXPORT_ALL_VARIABLES:
+
 .PHONY: build all clean test
+GOFLAGS=-mod=vendor
+GOPROXY="off"
 
 all: clean
 clean:
 	@rm -rf target/
 
 build: clean
-	@env GOOS=linux go build -o target/protoc-gen-graphql.linux
-	@env GOOS=darwin go build -o target/protoc-gen-graphql.darwin
+	@env GOOS=linux go build $(GOFLAGS) -o target/protoc-gen-graphql.linux
+	@env GOOS=darwin go build $(GOFLAGS) -o target/protoc-gen-graphql.darwin
 
 fixtures/money.pb: fixtures/money.proto
 	$(info Generating fixtures...)

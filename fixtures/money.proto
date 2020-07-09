@@ -1,8 +1,12 @@
 syntax = "proto3";
+
 package core.apimessages;
+
+import "google/protobuf/timestamp.proto";
 
 message Money {
   sint64 amount_cents = 1;
+  google.protobuf.Timestamp created_at = 2; // iso8601 { seconds: 123 }
 }
 
 message ThingWithMoney {
