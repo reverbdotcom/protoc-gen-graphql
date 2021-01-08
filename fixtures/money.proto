@@ -1,14 +1,19 @@
+// syntax comment
 syntax = "proto3";
 
+// package comments
 package core.apimessages;
 
 import "google/protobuf/timestamp.proto";
 
+// message comment
 message Money {
   sint64 amount_cents = 1;
+  // above field
   google.protobuf.Timestamp created_at = 2; // iso8601 { seconds: 123 }
 }
 
 message ThingWithMoney {
   Money amount_of_money = 1;
+  string foozles = 2; // foozles are the best
 }
