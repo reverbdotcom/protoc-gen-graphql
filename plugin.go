@@ -108,12 +108,28 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 	} {
 		name := fmt.Sprintf("%s%s", prefix, underscore(desc.GetFullName()))
 
+		if desc.GetComments().String() != "" {
+			fmt.Fprintf(
+				p.out,
+				"\"\"\"\n%s\n\"\"\"\n",
+				desc.GetComments().String(),
+			)
+		}
+
 		if len(desc.GetField()) == 0 {
 			fmt.Fprintf(p.out, "%s %s { \n  _: Boolean\n}\n\n", t, name)
 		} else {
 			fmt.Fprintf(p.out, "%s %s {\n", t, name)
 
-			for _, field := range desc.GetField() {
+			for _, field := range desc.GetMessageFields() {
+				if field.GetComments().String() != "" {
+					fmt.Fprintf(
+						p.out,
+						"  \"\"\"\n  %s\n  \"\"\"\n",
+						field.GetComments().String(),
+					)
+				}
+
 				fmt.Fprintf(p.out, "  %s: %s\n", field.GetJsonName(), typeName(field, prefix))
 			}
 
@@ -137,7 +153,7 @@ func parseParams(p string) map[string]string {
 	return params
 }
 
-func resolveType(field *descriptor.FieldDescriptorProto, prefix string) string {
+func resolveType(field *protokit.FieldDescriptor, prefix string) string {
 	if t, isPrimitive := primitives[field.GetType()]; isPrimitive {
 		return t
 	}
@@ -149,7 +165,7 @@ func resolveType(field *descriptor.FieldDescriptorProto, prefix string) string {
 	return fmt.Sprintf("%s%s", prefix, underscore(field.GetTypeName()[1:]))
 }
 
-func typeName(field *descriptor.FieldDescriptorProto, prefix string) string {
+func typeName(field *protokit.FieldDescriptor, prefix string) string {
 	if field.GetType() == descriptor.FieldDescriptorProto_TYPE_ENUM {
 		prefix = ""
 	}
