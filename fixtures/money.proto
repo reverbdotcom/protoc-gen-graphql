@@ -15,5 +15,6 @@ message Money {
 
 message ThingWithMoney {
   Money amount_of_money = 1;
-  string foozles = 2; // foozles are the best
+  string foobar = 2 [deprecated=true]; // Use foozles instead!
+  string foozles = 3; // foozles are the best
 }

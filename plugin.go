@@ -130,12 +130,20 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 					)
 				}
 
-				fmt.Fprintf(p.out, "  %s: %s\n", field.GetJsonName(), typeName(field, prefix))
+				fmt.Fprintf(p.out, "  %s: %s%s\n", field.GetJsonName(), typeName(field, prefix), deprecatedDirective(field))
 			}
 
 			fmt.Fprintf(p.out, "}\n\n")
 		}
 	}
+}
+
+// https://spec.graphql.org/October2021/#sec-Field-Deprecation
+func deprecatedDirective(field *protokit.FieldDescriptor) string {
+	if field.Options != nil && *field.Options.Deprecated {
+		return " @deprecated"
+	}
+	return ""
 }
 
 func parseParams(p string) map[string]string {
