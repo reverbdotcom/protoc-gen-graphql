@@ -106,3 +106,21 @@ func Test_FieldDeprecated(t *testing.T) {
 		t.Errorf("Expected generated schema to include deprecation descriptors, but got %s", content)
 	}
 }
+
+func Test_InputDeprecated(t *testing.T) {
+	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	if strings.Contains(content, "yeOldMoneyBox: Input_core_apimessages_OldMoneyBox @deprecated") {
+		t.Errorf("Expected generated schema to exclude input deprecation, but got %s", content)
+	}
+}
