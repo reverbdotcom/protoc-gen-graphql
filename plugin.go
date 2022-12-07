@@ -130,12 +130,26 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 					)
 				}
 
-				fmt.Fprintf(p.out, "  %s: %s\n", field.GetJsonName(), typeName(field, prefix))
+				fmt.Fprintf(p.out, "  %s: %s%s\n", field.GetJsonName(), typeName(field, prefix), deprecatedDirective(t, field))
 			}
 
 			fmt.Fprintf(p.out, "}\n\n")
 		}
 	}
+}
+
+// https://spec.graphql.org/October2021/#sec-Field-Deprecation
+// Field deprecation only applies to "type" fields. "input" fields may be supported
+// in future as of https://github.com/graphql/graphql-spec/pull/805
+func deprecatedDirective(t string, field *protokit.FieldDescriptor) string {
+	if t == "input" {
+		return ""
+	}
+
+	if field != nil && field.GetOptions() != nil && field.GetOptions().GetDeprecated() {
+		return " @deprecated"
+	}
+	return ""
 }
 
 func parseParams(p string) map[string]string {

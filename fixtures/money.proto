@@ -13,7 +13,17 @@ message Money {
   google.protobuf.Timestamp created_at = 2; // iso8601 { seconds: 123 }
 }
 
-message ThingWithMoney {
-  Money amount_of_money = 1;
-  string foozles = 2; // foozles are the best
+message OldMoneyBox {
+  sint64 amount_cents = 1;
+}
+
+message MoneyBox {
+  Money amount = 1;
+  string foobar = 2 [deprecated=true]; // Use foozles instead!
+  string foozles = 3; // foozles are the best
+}
+
+message MoneyBoxRequest {
+  OldMoneyBox ye_old_money_box = 1 [deprecated=true]; // Use the new money box instead!
+  MoneyBox money_box = 2;
 }
