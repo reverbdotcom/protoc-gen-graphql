@@ -1,6 +1,6 @@
 module github.com/reverbdotcom/protoc-gen-graphql
 
-go 1.14
+go 1.21
 
 require (
 	github.com/golang/protobuf v1.0.1-0.20180202184318-bbd03ef6da3a

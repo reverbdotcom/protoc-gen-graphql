@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func Test_SupportNewTimestampFormat(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -34,7 +34,7 @@ func Test_SupportNewTimestampFormat(t *testing.T) {
 }
 
 func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -56,7 +56,7 @@ func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
 }
 
 func Test_CanGenerate(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -71,8 +71,8 @@ func Test_CanGenerate(t *testing.T) {
 	t.Log(content)
 }
 
-func Test_CanAddComments(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+func Test_CanAddTypeComments(t *testing.T) {
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -85,12 +85,30 @@ func Test_CanAddComments(t *testing.T) {
 	content := res.GetFile()[0].GetContent()
 
 	if !strings.Contains(content, "foozles are the best") {
-		t.Errorf("Expected generated schema to include comments, but got %s", content)
+		t.Errorf("Expected generated schema to include type comments, but got %s", content)
+	}
+}
+
+func Test_CanAddEnumComments(t *testing.T) {
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	if !strings.Contains(content, "Put money in") {
+		t.Errorf("Expected generated schema to include enum comments, but got %s", content)
 	}
 }
 
 func Test_FieldDeprecated(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -107,8 +125,26 @@ func Test_FieldDeprecated(t *testing.T) {
 	}
 }
 
+func Test_EnumValueDeprecated(t *testing.T) {
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	if !strings.Contains(content, "BARTER @deprecated") {
+		t.Errorf("Expected generated schema to include an enum deprecation descriptor, but got %s", content)
+	}
+}
+
 func Test_InputDeprecated(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
