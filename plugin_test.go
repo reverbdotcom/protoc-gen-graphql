@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func Test_SupportNewTimestampFormat(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -34,7 +34,7 @@ func Test_SupportNewTimestampFormat(t *testing.T) {
 }
 
 func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -56,7 +56,7 @@ func Test_CanGenerateCamelCaseFieldNames(t *testing.T) {
 }
 
 func Test_CanGenerate(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -72,7 +72,7 @@ func Test_CanGenerate(t *testing.T) {
 }
 
 func Test_CanAddComments(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -90,7 +90,7 @@ func Test_CanAddComments(t *testing.T) {
 }
 
 func Test_FieldDeprecated(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
@@ -108,7 +108,7 @@ func Test_FieldDeprecated(t *testing.T) {
 }
 
 func Test_InputDeprecated(t *testing.T) {
-	fixture, _ := ioutil.ReadFile("./fixtures/money.pb")
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
 	fds := new(descriptor.FileDescriptorSet)
 	proto.Unmarshal(fixture, fds)
 
