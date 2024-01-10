@@ -70,7 +70,9 @@ func (p *plugin) printEnum(enum *protokit.EnumDescriptor) {
 	fmt.Fprintf(p.out, "enum %s {\n", underscore(enum.GetFullName()))
 
 	for _, val := range enum.GetValues() {
-		fmt.Fprintf(p.out, "  %s\n", val.GetName())
+		p.printComments(val.GetComments())
+
+		fmt.Fprintf(p.out, "  %s%s\n", val.GetName(), deprecatedEnumValueDirective(val))
 	}
 
 	fmt.Fprintf(p.out, "}\n\n")
@@ -108,13 +110,7 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 	} {
 		name := fmt.Sprintf("%s%s", prefix, underscore(desc.GetFullName()))
 
-		if desc.GetComments().String() != "" {
-			fmt.Fprintf(
-				p.out,
-				"\"\"\"\n%s\n\"\"\"\n",
-				desc.GetComments().String(),
-			)
-		}
+		p.printComments(desc.GetComments())
 
 		if len(desc.GetField()) == 0 {
 			fmt.Fprintf(p.out, "%s %s { \n  _: Boolean\n}\n\n", t, name)
@@ -122,15 +118,8 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 			fmt.Fprintf(p.out, "%s %s {\n", t, name)
 
 			for _, field := range desc.GetMessageFields() {
-				if field.GetComments().String() != "" {
-					fmt.Fprintf(
-						p.out,
-						"  \"\"\"\n  %s\n  \"\"\"\n",
-						field.GetComments().String(),
-					)
-				}
-
-				fmt.Fprintf(p.out, "  %s: %s%s\n", field.GetJsonName(), typeName(field, prefix), deprecatedDirective(t, field))
+				p.printComments(field.GetComments())
+				fmt.Fprintf(p.out, "  %s: %s%s\n", field.GetJsonName(), typeName(field, prefix), deprecatedFieldDirective(t, field))
 			}
 
 			fmt.Fprintf(p.out, "}\n\n")
@@ -138,10 +127,22 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 	}
 }
 
+func (p *plugin) printComments(comments *protokit.Comment) {
+	if comments.String() == "" {
+		return
+	}
+
+	fmt.Fprintf(
+		p.out,
+		"  \"\"\"\n  %s\n  \"\"\"\n",
+		comments.String(),
+	)
+}
+
 // https://spec.graphql.org/October2021/#sec-Field-Deprecation
 // Field deprecation only applies to "type" fields. "input" fields may be supported
 // in future as of https://github.com/graphql/graphql-spec/pull/805
-func deprecatedDirective(t string, field *protokit.FieldDescriptor) string {
+func deprecatedFieldDirective(t string, field *protokit.FieldDescriptor) string {
 	if t == "input" {
 		return ""
 	}
@@ -149,6 +150,15 @@ func deprecatedDirective(t string, field *protokit.FieldDescriptor) string {
 	if field != nil && field.GetOptions() != nil && field.GetOptions().GetDeprecated() {
 		return " @deprecated"
 	}
+
+	return ""
+}
+
+func deprecatedEnumValueDirective(field *protokit.EnumValueDescriptor) string {
+	if field != nil && field.GetOptions() != nil && field.GetOptions().GetDeprecated() {
+		return " @deprecated"
+	}
+
 	return ""
 }
 

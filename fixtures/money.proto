@@ -26,4 +26,10 @@ message MoneyBox {
 message MoneyBoxRequest {
   OldMoneyBox ye_old_money_box = 1 [deprecated=true]; // Use the new money box instead!
   MoneyBox money_box = 2;
+
+  enum TransactionType {
+    DEPOSIT = 0; // Put money in
+    WITHDRAWAL = 1;
+    BARTER = 3 [deprecated=true]; // Use withdrawal instead
+  }
 }
