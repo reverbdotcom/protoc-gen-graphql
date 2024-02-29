@@ -4,13 +4,21 @@
 GOFLAGS=-mod=vendor
 GOPROXY="off"
 
-all: clean
+targets = \
+	target/protoc-gen-graphql.linux.amd64 \
+	target/protoc-gen-graphql.linux.arm64 \
+	target/protoc-gen-graphql.darwin.arm64
+
+all: clean build
 clean:
 	@rm -rf target/
 
-build: clean
-	@env GOOS=linux GOARCH=amd64 go build $(GOFLAGS) -o target/protoc-gen-graphql.linux
-	@env GOOS=darwin go build $(GOFLAGS) -o target/protoc-gen-graphql.darwin
+build: clean $(targets)
+
+$(targets): export TARGET_ARCH=$(patsubst .%,%, $(suffix $(notdir $@)))
+$(targets): export TARGET_OS=$(patsubst .%,%, $(suffix $(basename $(notdir $@))))
+$(targets):
+	@env GOOS=$${TARGET_OS} GOARCH=$${TARGET_ARCH} go build $(GOFLAGS) -o target/protoc-gen-graphql.$${TARGET_OS}.$${TARGET_ARCH}
 
 fixtures/money.pb: fixtures/money.proto
 	$(info Generating fixtures...)
