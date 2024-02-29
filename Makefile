@@ -9,13 +9,11 @@ targets = \
 	target/protoc-gen-graphql.linux.arm64 \
 	target/protoc-gen-graphql.darwin.arm64
 
-all: clean
+all: clean build
 clean:
 	@rm -rf target/
 
-build: clean
-	@env GOOS=linux GOARCH=amd64 go build $(GOFLAGS) -o target/protoc-gen-graphql.linux
-	@env GOOS=darwin go build $(GOFLAGS) -o target/protoc-gen-graphql.darwin
+build: clean $(targets)
 
 $(targets): export TARGET_ARCH=$(patsubst .%,%, $(suffix $(notdir $@)))
 $(targets): export TARGET_OS=$(patsubst .%,%, $(suffix $(basename $(notdir $@))))
