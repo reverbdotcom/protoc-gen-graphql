@@ -119,7 +119,8 @@ func (p *plugin) printDescriptor(desc *protokit.Descriptor) {
 
 			for _, field := range desc.GetMessageFields() {
 				p.printComments(field.GetComments())
-				fmt.Fprintf(p.out, "  %s: %s%s\n", field.GetJsonName(), typeName(field, prefix), deprecatedFieldDirective(t, field))
+				requiredOption(t, field)
+				fmt.Fprintf(p.out, "  %s: %s%s%s\n", field.GetJsonName(), typeName(field, prefix), requiredOption(t, field), deprecatedFieldDirective(t, field))
 			}
 
 			fmt.Fprintf(p.out, "}\n\n")
@@ -132,11 +133,31 @@ func (p *plugin) printComments(comments *protokit.Comment) {
 		return
 	}
 
+	cleaned := strings.Replace(comments.String(), "gql-required", "", 1)
+
 	fmt.Fprintf(
 		p.out,
 		"  \"\"\"\n  %s\n  \"\"\"\n",
-		comments.String(),
+		cleaned,
 	)
+}
+
+func requiredOption(t string, field *protokit.FieldDescriptor) string {
+	if t == "input" {
+		return ""
+	}
+
+	if field == nil || field.GetComments().String() == "" {
+		return ""
+	}
+
+	comments := field.GetComments().String()
+
+	if strings.Contains(comments, "gql-required") {
+		return "!"
+	}
+
+	return ""
 }
 
 // https://spec.graphql.org/October2021/#sec-Field-Deprecation

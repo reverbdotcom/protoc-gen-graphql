@@ -21,6 +21,7 @@ message MoneyBox {
   Money amount = 1;
   string foobar = 2 [deprecated=true]; // Use foozles instead!
   string foozles = 3; // foozles are the best
+  string created_at = 4; // gql-required. I'll be there for you
 }
 
 message MoneyBoxRequest {

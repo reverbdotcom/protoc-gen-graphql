@@ -160,3 +160,21 @@ func Test_InputDeprecated(t *testing.T) {
 		t.Errorf("Expected generated schema to exclude input deprecation, but got %s", content)
 	}
 }
+
+func Test_FieldRequired(t *testing.T) {
+	fixture, _ := os.ReadFile("./fixtures/money.pb")
+	fds := new(descriptor.FileDescriptorSet)
+	proto.Unmarshal(fixture, fds)
+
+	req := new(plugin_go.CodeGeneratorRequest)
+	req.ProtoFile = fds.GetFile()
+	req.FileToGenerate = append(req.FileToGenerate, fds.GetFile()[0].GetName())
+
+	plugin := &plugin{out: &bytes.Buffer{}}
+	res, _ := plugin.Generate(req)
+	content := res.GetFile()[0].GetContent()
+
+	if !strings.Contains(content, "createdAt: String!") {
+		t.Errorf("Expected generated schema to include a required type, but got %s", content)
+	}
+}
